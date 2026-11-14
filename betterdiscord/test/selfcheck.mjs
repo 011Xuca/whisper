@@ -8,6 +8,9 @@ import { fileURLToPath } from "node:url";
 const file = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "Whisper.plugin.js");
 const code = fs.readFileSync(file, "utf8");
 assert.match(code, /^\/\*\*\n \* @name Whisper\n \* @author xuca\n/);
+const version = fs.readFileSync(path.join(path.dirname(file), "..", "version"), "utf8").trim();
+assert.ok(code.includes(`* @version ${version}\n`), "@version != archivo version");
+assert.ok(code.includes(`"${version}"`), "VERSION compilado != archivo version");
 for (const bad of ["@api/", "@webpack", "@utils/", "@components/", "VencordNative", "Vencord."]) assert.ok(!code.includes(bad), bad);
 
 // --- minimal DOM ---

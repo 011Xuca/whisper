@@ -9,6 +9,7 @@ if not defined ESBUILD (
     set "ESBUILD=%TEMP%\whisper-esbuild\node_modules\esbuild"
   )
 )
+call node sync-version.mjs || goto :fail
 pushd betterdiscord
 call node build.mjs || (popd & goto :fail)
 call node test\selfcheck.mjs || (popd & goto :fail)
