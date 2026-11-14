@@ -17,9 +17,12 @@ try {
     Expand-Archive "$tmp\w.zip" "$tmp\x"
     $new = Join-Path (Get-ChildItem "$tmp\x" | Select-Object -First 1).FullName 'vencord'
     if (-not (Test-Path (Join-Path $new 'index.ts'))) { throw 'index.ts no esta en la descarga / not in the download' }
-    # copy over this folder (no /MIR: never delete the user's files); update.ps1 itself is skipped because it is running
+    # copy over this folder (no /MIR: never delete the user's files); update.ps1 itself is skipped because it is running and replaced at the end
+    $self = Get-Content (Join-Path $new 'update.ps1') -Raw
     robocopy $new $PSScriptRoot /E /XF update.ps1 | Out-Null
     if ($LASTEXITCODE -ge 8) { throw "robocopy fallo/failed ($LASTEXITCODE)" }
 } finally { Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue }
 & (Join-Path $PSScriptRoot 'install.ps1') -Yes -NoInject
+# PowerShell parsed this whole script already, so rewriting it now is safe
+if ($self) { Set-Content (Join-Path $PSScriptRoot 'update.ps1') $self -NoNewline -Encoding UTF8 }
 Write-Host 'Reinicia Discord para cargar la version nueva / Restart Discord to load the new version.'
