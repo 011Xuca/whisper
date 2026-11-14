@@ -1,0 +1,53 @@
+WHISPER - plugin de Vencord / Vencord plugin (Windows)
+======================================================
+
+ES
+Los plugins propios de Vencord exigen compilar Vencord desde su codigo fuente. El instalador se encarga de todo.
+
+1. Abre PowerShell dentro de esta carpeta (la que contiene install.ps1) y ejecuta:
+      powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+   Para solo ver que haria, sin cambiar nada, agrega -DryRun. Con -Yes no pregunta nada.
+2. Si falta algo, el script lo instala con winget tras pedir confirmacion:
+   Git, Node.js (version minima que pide Vencord) y pnpm (version exacta que pide Vencord).
+   Discord (Stable, PTB o Canary) lo instalas tu: https://discord.com/download
+   Si no hay winget, instala Git (git-scm.com) y Node.js (nodejs.org) a mano y repite.
+3. Clona Vencord junto a la carpeta whisper (o usa -VencordDir RUTA), copia el plugin, compila
+   e inyecta Discord (te pregunta cual, o usa -Branch stable|ptb|canary). Cierra Discord antes.
+4. Abre Discord y activa: Ajustes -> Vencord -> Plugins -> Whisper.
+
+Actualizar: vuelve a ejecutar install.ps1 (con la version nueva del plugin).
+Desinstalar: desactiva Whisper en Ajustes -> Vencord -> Plugins; para quitar Vencord, cierra Discord
+y ejecuta "pnpm uninject" en la carpeta de Vencord. El script no borra tus archivos personales (solo sincroniza la carpeta del plugin dentro de Vencord).
+Problemas: si dice que la ejecucion de scripts esta deshabilitada, usa el comando de arriba (-ExecutionPolicy Bypass).
+A mano: copia esta carpeta (la subcarpeta whisper del zip, sin install.ps1 ni INSTALL.txt) en Vencord\src\userplugins\whisper y ejecuta pnpm install, pnpm build y pnpm inject.
+
+Aviso: los terminos de Discord prohiben los mods del cliente; usalo bajo tu propio riesgo.
+Este proyecto sera eliminado el dia que salga Discord Phoenix.
+
+EN
+Vencord userplugins require building Vencord from source. The installer does everything.
+
+1. Open PowerShell inside this folder (the one containing install.ps1) and run:
+      powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+   To only see what it would do without changing anything, add -DryRun. -Yes skips all questions.
+2. If something is missing, the script installs it with winget after asking:
+   Git, Node.js (minimum version Vencord requires) and pnpm (exact version Vencord requires).
+   You install Discord (Stable, PTB or Canary) yourself: https://discord.com/download
+   Without winget, install Git (git-scm.com) and Node.js (nodejs.org) manually and re-run.
+3. It clones Vencord next to the whisper folder (or use -VencordDir PATH), copies the plugin, builds
+   and injects Discord (it asks which one, or use -Branch stable|ptb|canary). Close Discord first.
+4. Open Discord and enable: Settings -> Vencord -> Plugins -> Whisper.
+
+Update: re-run install.ps1 (with the new plugin version).
+Uninstall: disable Whisper under Settings -> Vencord -> Plugins; to remove Vencord, close Discord
+and run "pnpm uninject" in the Vencord folder. The script does not delete your personal files (it only syncs the plugin folder inside Vencord).
+Troubleshooting: if scripts are reported as disabled, use the command above (-ExecutionPolicy Bypass).
+Manual: copy this folder (the whisper subfolder of the zip, without install.ps1 and INSTALL.txt) to Vencord\src\userplugins\whisper and run pnpm install, pnpm build and pnpm inject.
+
+Warning: Discord's Terms of Service prohibit client mods; use at your own risk.
+This project will be deleted the day Discord Phoenix is released.
+
+License: GPL-3.0-or-later (see LICENSE)
+
+Ko-fi: https://ko-fi.com/011xuca
+Redes / Socials: https://011xuca.github.io/links/
