@@ -16,6 +16,7 @@ param(
     [switch]$DryRun
 )
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 # Mensajes en ASCII: Windows PowerShell 5.1 lee mal los .ps1 sin BOM con acentos.
 $es = (Get-UICulture).TwoLetterISOLanguageName -eq 'es'
 function T($e, $n) { if ($es) { $e } else { $n } }
@@ -44,9 +45,16 @@ if ($dirs) { Say ((T 'Encontrado: ' 'Found: ') + ($dirs -join ', ')) } else {
 
 # --- 2. BetterDiscord ---
 Step 'BetterDiscord'
-# shortcut: solo comprueba la carpeta de plugins, no que Discord siga inyectado; si el plugin no aparece, reinstala BetterDiscord.
-if (Test-Path $plugins) { Say (T "BetterDiscord encontrado: $bdDir" "BetterDiscord found: $bdDir") } else {
-    Warn (T 'BetterDiscord no esta instalado (no existe %APPDATA%\BetterDiscord\plugins).' 'BetterDiscord is not installed (%APPDATA%\BetterDiscord\plugins does not exist).')
+# Discord al actualizarse borra la inyeccion de BetterDiscord aunque la carpeta de plugins siga: se comprueba el index.js de discord_desktop_core.
+function Test-Injected {
+    foreach ($d in $dirs) {
+        $a = Get-ChildItem (Join-Path $env:LOCALAPPDATA $d) -Directory -Filter 'app-*' -ErrorAction SilentlyContinue | Sort-Object { try { [version]($_.Name -replace '^app-') } catch { [version]'0.0' } } | Select-Object -Last 1
+        if ($a -and (Get-ChildItem $a.FullName -Recurse -Filter index.js -ErrorAction SilentlyContinue | Where-Object FullName -Match 'discord_desktop_core' | Select-String betterdiscord -SimpleMatch -Quiet)) { return $true }
+    }
+    return $false
+}
+if ((Test-Path $plugins) -and (Test-Injected)) { Say (T "BetterDiscord encontrado: $bdDir" "BetterDiscord found: $bdDir") } else {
+    Warn (T 'BetterDiscord no esta instalado o Discord lo desactivo al actualizarse.' 'BetterDiscord is not installed or a Discord update removed it.')
     if (-not (Ask (T 'Descargar el instalador oficial de BetterDiscord?' 'Download the official BetterDiscord installer?'))) {
         throw (T 'BetterDiscord es necesario. Instalalo desde https://betterdiscord.app/ o copia Whisper.plugin.js a mano en %APPDATA%\BetterDiscord\plugins.' 'BetterDiscord is required. Install it from https://betterdiscord.app/ or copy Whisper.plugin.js manually to %APPDATA%\BetterDiscord\plugins.')
     }
@@ -72,7 +80,7 @@ if (Test-Path $plugins) { Say (T "BetterDiscord encontrado: $bdDir" "BetterDisco
         do {
             if ($Yes) { Start-Sleep 5; if ((Get-Date) -gt $deadline) { throw (T 'BetterDiscord no aparecio en 15 minutos.' 'BetterDiscord did not appear within 15 minutes.') } }
             else { Read-Host (T 'Pulsa Enter cuando BetterDiscord este instalado' 'Press Enter once BetterDiscord is installed') | Out-Null }
-        } until (Test-Path $plugins -PathType Container)
+        } until ((Test-Path $plugins -PathType Container) -and (Test-Injected))
     }
 }
 

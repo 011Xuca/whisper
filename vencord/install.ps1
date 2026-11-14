@@ -4,7 +4,7 @@
 .DESCRIPTION
   Instala lo que falte (Git, Node.js, pnpm), clona Vencord, copia el plugin, compila e inyecta Discord.
   Es seguro volver a ejecutarlo para actualizar. Installs what is missing, clones Vencord, copies the plugin, builds and injects Discord. Safe to re-run to update.
-.PARAMETER VencordDir  Carpeta del clon de Vencord (por defecto, junto a la carpeta whisper) / Vencord clone folder (default: next to the whisper folder).
+.PARAMETER VencordDir  Carpeta del clon de Vencord (por defecto, %LOCALAPPDATA%\Whisper\Vencord o el clon junto a la carpeta whisper si ya existe) / Vencord clone folder (default: %LOCALAPPDATA%\Whisper\Vencord, or the clone next to the whisper folder if it already exists).
 .PARAMETER Branch      stable | ptb | canary. Si se omite, se pregunta / asked when omitted.
 .PARAMETER Yes         Acepta todas las confirmaciones (instalar con winget, etc.) / Accept every prompt.
 .PARAMETER DryRun      Solo muestra lo que haria; no instala, clona, copia, compila ni inyecta / Only prints what it would do.
@@ -66,10 +66,13 @@ $src = $PSScriptRoot
 if (-not (Test-Path (Join-Path $src 'index.ts'))) { $src = Join-Path $PSScriptRoot 'whisper' }
 if (-not (Test-Path (Join-Path $src 'index.ts'))) { Fail (T "No encuentro el codigo del plugin (index.ts). Ejecuta el script desde la carpeta whisper o la del zip." "Plugin source (index.ts) not found. Run the script from the whisper folder or the release zip folder.") }
 if (-not $VencordDir) {
-    # inside the repo layout (<repo>encord) the clone goes next to the repo folder, not inside it
+    # inside the repo layout (<repo>/vencord) the clone goes next to the repo folder, not inside it
     $base = Split-Path $src -Parent
     if ((Split-Path $src -Leaf) -ieq 'vencord') { $base = Split-Path $base -Parent }
     $VencordDir = Join-Path $base 'Vencord'
+    # Discord queda apuntando a esta carpeta: si no hay un clon ya hecho aqui, usa una ruta fija que no se mueva/borre con el zip (Descargas)
+    # Discord keeps pointing at this folder: unless a clone already exists here, use a fixed path that moving/deleting the zip folder will not break
+    if (-not (Test-Path (Join-Path $VencordDir 'package.json'))) { $VencordDir = Join-Path $env:LOCALAPPDATA 'Whisper\Vencord' }
 }
 $VencordDir = [IO.Path]::GetFullPath($VencordDir)
 if ($DryRun) { Say (T '*** MODO DryRun: no se cambia nada ***' '*** DryRun mode: nothing is changed ***') }
@@ -137,33 +140,35 @@ if (-not $Branch) {
     else { do { $Branch = (Read-Host (T 'Que Discord inyectar? (stable/ptb/canary)' 'Which Discord to inject? (stable/ptb/canary)')).Trim().ToLower() } until ($dirs.ContainsKey($Branch)) }
 }
 Say "Branch: $Branch"
+# con -Yes y varias variantes instaladas se inyectan todas / with -Yes and several variants installed, inject all of them
+$targets = if ($Yes -and -not $PSBoundParameters.ContainsKey('Branch') -and $found.Count -gt 1) { $found } else { @($Branch) }
 
 # --- 5. Copiar el plugin ---
 Step (T 'Copiar el plugin' 'Copy the plugin')
 $dest = Join-Path $VencordDir 'src\userplugins\whisper'
 # /MIR deja nuestra copia identica al origen (solo dentro de userplugins\whisper); no toca nada mas
 Do-It "robocopy $src -> $dest" {
-    robocopy $src $dest /MIR /XD .git .claude node_modules /XF install.ps1 update.ps1 README.md 'INSTALL*' .gitignore | Out-Null
+    robocopy $src $dest /MIR /XD .git .claude node_modules /XF install.ps1 update.ps1 Whisper.bat README.md 'INSTALL*' .gitignore | Out-Null
     if ($LASTEXITCODE -ge 8) { Fail "robocopy fallo/failed ($LASTEXITCODE)" }
 }
 
 # --- 6. Compilar ---
 Step (T 'Compilar Vencord' 'Build Vencord')
-Do-It 'pnpm install' { Push-Location $VencordDir; try { Exec pnpm install } finally { Pop-Location } }
+Do-It 'pnpm install' { Push-Location $VencordDir; try { Exec pnpm install --config.confirm-modules-purge=false } finally { Pop-Location } }
 Do-It 'pnpm build' { Push-Location $VencordDir; try { Exec pnpm build } finally { Pop-Location } }
 
 # --- 7. Inyectar ---
 if ($NoInject) { Say (T 'Inyeccion omitida (-NoInject).' 'Injection skipped (-NoInject).') } else {
-    Step (T "Inyectar Vencord en Discord ($Branch)" "Inject Vencord into Discord ($Branch)")
+    Step (T "Inyectar Vencord en Discord ($($targets -join ', '))" "Inject Vencord into Discord ($($targets -join ', '))")
     $run = Get-Process -Name Discord, DiscordPTB, DiscordCanary -ErrorAction SilentlyContinue
     if ($run -and -not $DryRun) {
         if ($Yes) { Fail (T 'Discord esta abierto. Cierralo (tambien la bandeja del sistema) y reintenta.' 'Discord is running. Close it (also from the tray) and retry.') }
         Read-Host (T 'Cierra Discord por completo (tambien en la bandeja) y pulsa Enter' 'Fully close Discord (also from the tray) and press Enter') | Out-Null
     }
     # Es lo mismo que "pnpm inject" pero con la rama elegida (el instalador CLI acepta --branch)
-    Do-It "node scripts/runInstaller.mjs -- --install --branch $Branch" { Push-Location $VencordDir; try { Exec node scripts/runInstaller.mjs '--' '--install' '--branch' $Branch } finally { Pop-Location } }
+    foreach ($b in $targets) { Do-It "node scripts/runInstaller.mjs -- --install --branch $b" { Push-Location $VencordDir; try { Exec node scripts/runInstaller.mjs '--' '--install' '--branch' $b } finally { Pop-Location } } }
 }
 
 Step (T 'Listo' 'Done')
 Say (T 'Abre (o reinicia) Discord y activa Whisper en Ajustes -> Vencord -> Plugins -> Whisper.' 'Open (or restart) Discord and enable Whisper under Settings -> Vencord -> Plugins -> Whisper.')
-Say (T 'Para actualizar: vuelve a ejecutar este script. Para desinstalar: ver INSTALL.txt / README.' 'To update: re-run this script. To uninstall: see INSTALL.txt / README.')
+Say (T 'Para actualizar: vuelve a ejecutar este script. Para desinstalar: ver README.' 'To update: re-run this script. To uninstall: see README.')

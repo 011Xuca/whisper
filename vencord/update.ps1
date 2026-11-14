@@ -2,12 +2,16 @@
 .SYNOPSIS
   Actualiza Whisper (Vencord) a la ultima version de GitHub / Updates Whisper (Vencord) to the latest GitHub version.
 .DESCRIPTION
-  Baja el codigo de GitHub, reemplaza esta carpeta y ejecuta install.ps1 -Yes -NoInject (copia, compila). No cierra Discord: reinicialo despues.
-  Downloads the code from GitHub, refreshes this folder and runs install.ps1 -Yes -NoInject (copy, build). Does not close Discord: restart it afterwards.
+  Baja el codigo de GitHub, reemplaza esta carpeta y ejecuta install.ps1 -Yes (copia, compila; con -Inject tambien inyecta). No cierra Discord: reinicialo despues.
+  Downloads the code from GitHub, refreshes this folder and runs install.ps1 -Yes (copy, build; with -Inject also injects). Does not close Discord: restart it afterwards.
 .EXAMPLE
   powershell -NoProfile -ExecutionPolicy Bypass -File .\update.ps1
 #>
+param([switch]$Inject)
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+# /MIR borra lo que ya no existe en GitHub: nunca sobre un clon de desarrollo / /MIR deletes files removed upstream: never on a dev clone
+if (Test-Path (Join-Path $PSScriptRoot '..\.git')) { throw 'Esto es un clon de desarrollo: usa git pull / This is a dev clone: use git pull' }
 $repo = '011Xuca/whisper'
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ('whisper-update-' + [guid]::NewGuid())
 New-Item -ItemType Directory $tmp | Out-Null
@@ -19,10 +23,10 @@ try {
     if (-not (Test-Path (Join-Path $new 'index.ts'))) { throw 'index.ts no esta en la descarga / not in the download' }
     # copy over this folder (no /MIR: never delete the user's files); update.ps1 itself is skipped because it is running and replaced at the end
     $self = Get-Content (Join-Path $new 'update.ps1') -Raw
-    robocopy $new $PSScriptRoot /E /XF update.ps1 | Out-Null
+    robocopy $new $PSScriptRoot /MIR /XD .git .claude node_modules /XF update.ps1 Whisper.bat | Out-Null
     if ($LASTEXITCODE -ge 8) { throw "robocopy fallo/failed ($LASTEXITCODE)" }
 } finally { Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue }
-& (Join-Path $PSScriptRoot 'install.ps1') -Yes -NoInject
+& (Join-Path $PSScriptRoot 'install.ps1') -Yes -NoInject:(-not $Inject)
 # PowerShell parsed this whole script already, so rewriting it now is safe
 if ($self) { Set-Content (Join-Path $PSScriptRoot 'update.ps1') $self -NoNewline -Encoding UTF8 }
 Write-Host 'Reinicia Discord para cargar la version nueva / Restart Discord to load the new version.'

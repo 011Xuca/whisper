@@ -15,7 +15,7 @@ call node test\selfcheck.mjs || (popd & goto :fail)
 popd
 powershell -NoProfile -Command ^
  "$d=[Environment]::GetFolderPath('Desktop'); $ErrorActionPreference='Stop';" ^
- "$b=@('betterdiscord\Whisper.plugin.js','betterdiscord\INSTALL.txt','betterdiscord\install.ps1');" ^
+ "$b=@('betterdiscord\Whisper.plugin.js','betterdiscord\install.ps1','betterdiscord\Whisper.bat');" ^
  "Compress-Archive $b \"$d\Whisper-BetterDiscord.zip\" -Force;" ^
  "$v=Get-ChildItem vencord -Force | Where-Object { $_.Name -notin 'node_modules','.git','.claude' };" ^
  "Compress-Archive $v.FullName \"$d\Whisper-Vencord.zip\" -Force;" ^

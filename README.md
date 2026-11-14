@@ -52,7 +52,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 El script copia el plugin a `src\userplugins\whisper` de Vencord, compila e inyecta Discord (te pregunta cuál, o usa `-Branch stable|ptb|canary`). Cierra Discord antes. Opciones: `-VencordDir RUTA` (clon de Vencord; por defecto, junto a la carpeta del repo), `-Branch`, `-NoInject` (compila sin inyectar), `-DryRun`, `-Yes`.
 Después abre Discord y activa **Ajustes → Vencord → Plugins → Whisper**.
 
-**A mano:** copia el contenido de `vencord/` (sin `install.ps1` ni `INSTALL.txt`) a `Vencord\src\userplugins\whisper` y ejecuta `pnpm install`, `pnpm build` y `pnpm inject`.
+**A mano:** copia el contenido de `vencord/` (sin `install.ps1`, `update.ps1` ni `Whisper.bat`) a `Vencord\src\userplugins\whisper` y ejecuta `pnpm install`, `pnpm build` y `pnpm inject`.
 **Actualizar:** vuelve a ejecutar `install.ps1` con la versión nueva del plugin.
 **Desinstalar:** desactiva Whisper en Ajustes → Vencord → Plugins. Para quitar Vencord de Discord, cierra Discord y ejecuta `pnpm uninject` en la carpeta de Vencord. El script no borra tus archivos personales (solo sincroniza la carpeta del plugin dentro de Vencord).
 
@@ -109,7 +109,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 The script copies the plugin to Vencord's `src\userplugins\whisper`, builds and injects Discord (it asks which one, or use `-Branch stable|ptb|canary`). Close Discord first. Options: `-VencordDir PATH` (Vencord clone; default: next to the repo folder), `-Branch`, `-NoInject` (build without injecting), `-DryRun`, `-Yes`.
 Then open Discord and enable **Settings → Vencord → Plugins → Whisper**.
 
-**Manual:** copy the contents of `vencord/` (without `install.ps1` and `INSTALL.txt`) to `Vencord\src\userplugins\whisper` and run `pnpm install`, `pnpm build` and `pnpm inject`.
+**Manual:** copy the contents of `vencord/` (without `install.ps1`, `update.ps1` and `Whisper.bat`) to `Vencord\src\userplugins\whisper` and run `pnpm install`, `pnpm build` and `pnpm inject`.
 **Update:** re-run `install.ps1` with the new plugin version.
 **Uninstall:** disable Whisper under Settings → Vencord → Plugins. To remove Vencord from Discord, close Discord and run `pnpm uninject` in the Vencord folder. The script does not delete your personal files (it only syncs the plugin folder inside Vencord).
 
