@@ -42,7 +42,9 @@ function Refresh-Path {
     $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
 }
 function Exec { # corre un programa y falla si devuelve error
-    & $args[0] @($args[1..($args.Count - 1)])
+    # Application evita el shim npm.ps1, que falla al parsear $MyInvocation.Line cuando se llama con splatting
+    $exe = (Get-Command $args[0] -CommandType Application | Select-Object -First 1).Source
+    & $exe @($args[1..($args.Count - 1)])
     if ($LASTEXITCODE -ne 0) { Fail (T "Fallo el comando: $($args -join ' ') (codigo $LASTEXITCODE)" "Command failed: $($args -join ' ') (exit code $LASTEXITCODE)") }
 }
 function Winget-Install($id, $cmd, $name, $url) {
