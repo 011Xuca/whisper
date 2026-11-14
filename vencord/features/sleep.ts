@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { SelectedChannelStore } from "@webpack/common";
+
 import { settings } from "../core/settings";
 import { setState, state } from "../core/state";
 
@@ -27,7 +29,8 @@ export function update() {
         if (!shouldSleep()) return;
         setState("asleep", true);
         // frees Blink's caches (images/fonts/decoded data); the DOM and React state stay, so it is a small saving
-        try { (window as any).DiscordNative?.processUtils?.purgeMemory?.(); } catch { }
+        // not in a call: dropping the caches forces a burst of re-decoding on wake
+        if (!SelectedChannelStore.getVoiceChannelId()) try { (window as any).DiscordNative?.processUtils?.purgeMemory?.(); } catch { }
     }, Math.max(0, settings.store.delaySeconds) * 1000);
 }
 

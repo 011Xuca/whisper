@@ -15,7 +15,7 @@ Los plugins propios de Vencord exigen compilar Vencord desde su codigo fuente. E
    e inyecta Discord (te pregunta cual, o usa -Branch stable|ptb|canary). Cierra Discord antes.
 4. Abre Discord y activa: Ajustes -> Vencord -> Plugins -> Whisper.
 
-Actualizar: vuelve a ejecutar install.ps1 (con la version nueva del plugin).
+Actualizar: ejecuta update.ps1 (baja la ultima version de GitHub, compila; reinicia Discord despues).
 Desinstalar: desactiva Whisper en Ajustes -> Vencord -> Plugins; para quitar Vencord, cierra Discord
 y ejecuta "pnpm uninject" en la carpeta de Vencord. El script no borra tus archivos personales (solo sincroniza la carpeta del plugin dentro de Vencord).
 Problemas: si dice que la ejecucion de scripts esta deshabilitada, usa el comando de arriba (-ExecutionPolicy Bypass).
@@ -38,7 +38,7 @@ Vencord userplugins require building Vencord from source. The installer does eve
    and injects Discord (it asks which one, or use -Branch stable|ptb|canary). Close Discord first.
 4. Open Discord and enable: Settings -> Vencord -> Plugins -> Whisper.
 
-Update: re-run install.ps1 (with the new plugin version).
+Update: run update.ps1 (downloads the latest GitHub version and builds; restart Discord afterwards).
 Uninstall: disable Whisper under Settings -> Vencord -> Plugins; to remove Vencord, close Discord
 and run "pnpm uninject" in the Vencord folder. The script does not delete your personal files (it only syncs the plugin folder inside Vencord).
 Troubleshooting: if scripts are reported as disabled, use the command above (-ExecutionPolicy Bypass).

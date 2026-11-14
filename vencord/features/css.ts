@@ -18,9 +18,6 @@ let style: HTMLStyleElement | undefined;
 /** Matches Discord's hashed CSS-module classes by their readable prefix, e.g. typing_xYz123 */
 const cls = (name: string) => `:is([class^="${name}_"],[class*=" ${name}_"])`;
 
-/** Voice/call containers where shadows are never removed, so the speaking indicator survives. */
-const VOICE = ':is([data-selenium-video-tile],[class*="voice"],[class*="Voice"])';
-
 /** Hides a sidebar entry by its route: the row (if it has a list-item id) or, failing that, the link itself. */
 const hideRoute = (href: string) => `:is(li,[data-list-item-id]):has(a[href="${href}"]),a[href="${href}"]`;
 
@@ -47,8 +44,8 @@ function build() {
         orGame(on("noAnimations"), ["*", "*::before", "*::after"],
             "animation-duration:0s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:0s!important;transition-delay:0s!important;scroll-behavior:auto!important"),
         orGame(on("noBlur"), ["*"], "backdrop-filter:none!important"),
-        // the green speaking ring is a box-shadow/outline: voice and call containers are always excluded (no stable speaking hook found)
-        settings.store.noShadows && `*:not(${VOICE},${VOICE} *){box-shadow:none!important;text-shadow:none!important}`,
+        // Plain universal rule: excluding voice containers needed an ancestor check on every restyle (CPU spikes in calls), so the green speaking ring goes too.
+        settings.store.noShadows && "*{box-shadow:none!important;text-shadow:none!important}",
 
         settings.store.hideEmbeds && `${cls("embedFull")}{display:none!important}`,
         // message rows are li#chat-messages-<channel>-<message> (verified in the live DOM)

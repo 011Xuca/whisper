@@ -157,9 +157,12 @@ function onOut(e) {
   }
 }
 function onMutations(records) {
+  const seen = /* @__PURE__ */ new Set();
   for (const r of records) {
     if (r.type === "attributes") {
       const el = r.target;
+      if (seen.has(el)) continue;
+      seen.add(el);
       if (!thawed.has(el) && (el.dataset.whisperSrc || el.matches(SEL))) sync(el);
       continue;
     }
@@ -183,7 +186,7 @@ function syncAvatars() {
   if (!on("avatarsOnHover") && !settings.store.defaultAvatars) return;
   document.querySelectorAll(SEL).forEach((el) => sync(el));
   observer = new MutationObserver(onMutations);
-  observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "style"] });
+  observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["src"] });
   document.addEventListener("pointerover", onOver, { passive: true });
   document.addEventListener("pointerout", onOut, { passive: true });
 }
@@ -391,7 +394,6 @@ function syncLazyImages() {
 // src/features/css.ts
 var style;
 var cls = (name) => `:is([class^="${name}_"],[class*=" ${name}_"])`;
-var VOICE = ':is([data-selenium-video-tile],[class*="voice"],[class*="Voice"])';
 var hideRoute = (href) => `:is(li,[data-list-item-id]):has(a[href="${href}"]),a[href="${href}"]`;
 var DNS_FONT = cls("dnsFont");
 var INLINE_COLOR = ':is([style^="color:"],[style*="; color:"])';
@@ -411,8 +413,8 @@ function build() {
       "animation-duration:0s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:0s!important;transition-delay:0s!important;scroll-behavior:auto!important"
     ),
     orGame(on("noBlur"), ["*"], "backdrop-filter:none!important"),
-    // the green speaking ring is a box-shadow/outline: voice and call containers are always excluded (no stable speaking hook found)
-    settings.store.noShadows && `*:not(${VOICE},${VOICE} *){box-shadow:none!important;text-shadow:none!important}`,
+    // Plain universal rule: excluding voice containers needed an ancestor check on every restyle (CPU spikes in calls), so the green speaking ring goes too.
+    settings.store.noShadows && "*{box-shadow:none!important;text-shadow:none!important}",
     settings.store.hideEmbeds && `${cls("embedFull")}{display:none!important}`,
     // message rows are li#chat-messages-<channel>-<message> (verified in the live DOM)
     settings.store.lazyMessages && 'li[id^="chat-messages-"]{content-visibility:auto;contain-intrinsic-size:auto 80px}',
@@ -720,7 +722,7 @@ var META = [
     type: "bool",
     keys: ["noAnimations", "reducedMotion", "noBlur", "noShadows"],
     title: t("Efectos visuales apagados", "Visual effects off"),
-    desc: t("Sin animaciones, movimiento reducido, sin desenfoques y sin sombras, todo junto", "No animations, reduced motion, no blur and no shadows, all together")
+    desc: t("Sin animaciones, movimiento reducido, sin desenfoques y sin sombras, todo junto. AVISO: quitar las sombras tambien quita el anillo verde de quien habla en las llamadas (rinde mas CPU)", "No animations, reduced motion, no blur and no shadows, all together. NOTE: removing shadows also removes the green speaking ring in calls (saves more CPU)")
   },
   {
     key: "group:g1",
@@ -742,14 +744,14 @@ var META = [
     cat: "media",
     type: "bool",
     title: t("Imagenes bajo demanda", "Images on demand"),
-    desc: t("[Experimental] Las imagenes de adjuntos y embeds en los mensajes se reemplazan por una miniatura borrosa y se cargan al pasar el mouse (150 ms), al hacer clic o con el teclado; una vez cargadas se quedan. No toca avatares, emojis, stickers ni el visor. Limitacion: si Discord ya pidio la imagen antes del reemplazo, la descarga no se evita (solo se evita mostrarla/decodificarla)", "[Experimental] Attachment and embed images in messages are swapped for a tiny blurred thumbnail and load on hover (150 ms), click or keyboard focus; once loaded they stay. Does not touch avatars, emojis, stickers or the viewer. Limitation: if Discord already requested the image before the swap, the download is not avoided (only displaying/decoding it is)")
+    desc: t("Las imagenes de adjuntos y embeds en los mensajes se reemplazan por una miniatura borrosa y se cargan al pasar el mouse (150 ms), al hacer clic o con el teclado; una vez cargadas se quedan. No toca avatares, emojis, stickers ni el visor. Limitacion: si Discord ya pidio la imagen antes del reemplazo, la descarga no se evita (solo se evita mostrarla/decodificarla)", "Attachment and embed images in messages are swapped for a tiny blurred thumbnail and load on hover (150 ms), click or keyboard focus; once loaded they stay. Does not touch avatars, emojis, stickers or the viewer. Limitation: if Discord already requested the image before the swap, the download is not avoided (only displaying/decoding it is)")
   },
   {
     key: "hideGroupIcons",
     cat: "media",
     type: "bool",
     title: t("Fotos de servidores y grupos bajo demanda", "Server and group icons on demand"),
-    desc: t("[Experimental] Los iconos de servidores y de grupos de mensajes privados no se muestran hasta pasar el mouse sobre ellos (quedan en gris). Limitacion: si Discord ya pidio el icono antes del reemplazo, la descarga no se evita", "[Experimental] Server and group-DM icons are not shown until you hover them (they stay gray). Limitation: if Discord already requested the icon before the swap, the download is not avoided")
+    desc: t("Los iconos de servidores y de grupos de mensajes privados no se muestran hasta pasar el mouse sobre ellos (quedan en gris). Limitacion: si Discord ya pidio el icono antes del reemplazo, la descarga no se evita", "Server and group-DM icons are not shown until you hover them (they stay gray). Limitation: if Discord already requested the icon before the swap, the download is not avoided")
   },
   {
     key: "blurImages",
@@ -770,7 +772,7 @@ var META = [
     cat: "msgs",
     type: "bool",
     title: t("Mensajes diferidos", "Lazy messages"),
-    desc: t("[Experimental] No pintar mensajes fuera de pantalla (content-visibility). Puede causar saltos de scroll", "[Experimental] Skip painting off-screen messages (content-visibility). May cause scroll jumps")
+    desc: t("No pintar mensajes fuera de pantalla (content-visibility). Puede causar saltos de scroll", "Skip painting off-screen messages (content-visibility). May cause scroll jumps")
   },
   {
     key: "group:g4",
@@ -785,7 +787,7 @@ var META = [
     cat: "msgs",
     type: "bool",
     title: t("Silenciados no cargan nada", "Muted load nothing"),
-    desc: t("[Experimental] Silenciados no cargan nada: descarta (filtro de Flux) los mensajes nuevos, ediciones y 'esta escribiendo' de servidores, canales y chats directos/grupos silenciados, para que Discord no los procese ni guarde en memoria. Nunca descarta: el canal abierto, tus mensajes, menciones directas a ti ni respuestas a tus mensajes; ante cualquier duda no descarta. Al abrir un canal silenciado Discord vuelve a cargar sus mensajes normalmente. Los silenciados no mostraran indicador de no leido", "[Experimental] Muted load nothing: drops (Flux filter) new messages, edits and typing events from muted servers, channels and DMs/group chats, so Discord does not process or cache them. Never drops: the open channel, your messages, direct mentions of you or replies to your messages; when in doubt it does not drop. Opening a muted channel makes Discord load its messages normally. Muted ones will not show an unread indicator")
+    desc: t("Silenciados no cargan nada: descarta (filtro de Flux) los mensajes nuevos, ediciones y 'esta escribiendo' de servidores, canales y chats directos/grupos silenciados, para que Discord no los procese ni guarde en memoria. Nunca descarta: el canal abierto, tus mensajes, menciones directas a ti ni respuestas a tus mensajes; ante cualquier duda no descarta. Al abrir un canal silenciado Discord vuelve a cargar sus mensajes normalmente. Los silenciados no mostraran indicador de no leido", "Muted load nothing: drops (Flux filter) new messages, edits and typing events from muted servers, channels and DMs/group chats, so Discord does not process or cache them. Never drops: the open channel, your messages, direct mentions of you or replies to your messages; when in doubt it does not drop. Opening a muted channel makes Discord load its messages normally. Muted ones will not show an unread indicator")
   },
   {
     key: "noPersonalization",
@@ -1137,6 +1139,7 @@ function clean() {
     el.removeAttribute(HIDE);
   }
 }
+var TABLIST = '[role="tab"],[role="tablist"]';
 var schedule = () => {
   timer2 ??= setTimeout(scan, 80);
 };
@@ -1150,7 +1153,9 @@ function stopProfileTabs() {
 function syncProfileTabs() {
   if (!on("hideProfileTabs") && !on("hideMutualTabs")) return stopProfileTabs();
   if (!observer5) {
-    observer5 = new MutationObserver(schedule);
+    observer5 = new MutationObserver((rs) => {
+      if (rs.some((r) => [...r.addedNodes].some((n) => n instanceof Element && (n.matches(TABLIST) || n.querySelector(TABLIST))))) schedule();
+    });
     observer5.observe(document.body, { childList: true, subtree: true });
   }
   scan();
@@ -1291,7 +1296,7 @@ module.exports = class Whisper {
     running = true;
     safe("loadSettings", loadSettings);
     onSettingsChange((key) => {
-      queueSync();
+      if (key !== "prevMotion") queueSync();
       safe("onSettingChange", () => onSettingChange(key));
     });
     safe("onStateChange", () => onStateChange(syncState));

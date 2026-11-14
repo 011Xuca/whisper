@@ -91,7 +91,7 @@ export const settings = definePluginSettings({
     hideGroupIcons: bool(false),
 
     // --- Updates ---
-    checkUpdates: bool(false),
+    checkUpdates: bool(true),
     prevMotion: { type: OptionType.STRING, description: "", default: "", hidden: true },
     notifiedVersion: { type: OptionType.STRING, description: "", default: "", hidden: true },
 });

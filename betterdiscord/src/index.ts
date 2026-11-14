@@ -75,7 +75,7 @@ module.exports = class Whisper {
         running = true;
         safe("loadSettings", loadSettings);
         onSettingsChange(key => {
-            queueSync();
+            if (key !== "prevMotion") queueSync(); // internal bookkeeping: a full re-scan for it would be a CPU spike
             safe("onSettingChange", () => onSettingChange(key));
         });
         safe("onStateChange", () => onStateChange(syncState));

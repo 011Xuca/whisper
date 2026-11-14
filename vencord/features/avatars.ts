@@ -75,9 +75,12 @@ function onOut(e: PointerEvent) {
 }
 
 function onMutations(records: MutationRecord[]) {
+    const seen = new Set<Node>(); // a style animated by Discord in a call yields hundreds of records per element: handle each once per batch
     for (const r of records) {
         if (r.type === "attributes") {
             const el = r.target as HTMLElement;
+            if (seen.has(el)) continue;
+            seen.add(el);
             if (!thawed.has(el) && (el.dataset.whisperSrc || el.matches(SEL))) sync(el);
             continue;
         }
@@ -103,7 +106,7 @@ export function syncAvatars() {
     if (!on("avatarsOnHover") && !settings.store.defaultAvatars) return;
     document.querySelectorAll<HTMLElement>(SEL).forEach(el => sync(el));
     observer = new MutationObserver(onMutations);
-    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "style"] });
+    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["src"] });
     document.addEventListener("pointerover", onOver, { passive: true });
     document.addEventListener("pointerout", onOut, { passive: true });
 }

@@ -143,7 +143,7 @@ Step (T 'Copiar el plugin' 'Copy the plugin')
 $dest = Join-Path $VencordDir 'src\userplugins\whisper'
 # /MIR deja nuestra copia identica al origen (solo dentro de userplugins\whisper); no toca nada mas
 Do-It "robocopy $src -> $dest" {
-    robocopy $src $dest /MIR /XD .git .claude node_modules /XF install.ps1 README.md 'INSTALL*' .gitignore | Out-Null
+    robocopy $src $dest /MIR /XD .git .claude node_modules /XF install.ps1 update.ps1 README.md 'INSTALL*' .gitignore | Out-Null
     if ($LASTEXITCODE -ge 8) { Fail "robocopy fallo/failed ($LASTEXITCODE)" }
 }
 

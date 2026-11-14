@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { RunningGameStore } from "@webpack/common";
+import { RunningGameStore, SelectedChannelStore } from "@webpack/common";
 
 import { settings } from "../core/settings";
 import { setState, state } from "../core/state";
@@ -14,7 +14,7 @@ export function detectGame() {
     const was = state.gaming;
     setState("gaming", settings.store.gameMode && !!RunningGameStore?.getVisibleRunningGames?.().some(g => !g.isLauncher));
     // once per game start: hand Blink's caches back to the OS while the game needs RAM (measured -26 MB renderer private bytes)
-    if (!was && state.gaming && IS_DISCORD_DESKTOP) try { DiscordNative.processUtils?.purgeMemory?.(); } catch { }
+    if (!was && state.gaming && IS_DISCORD_DESKTOP && !SelectedChannelStore.getVoiceChannelId()) try { DiscordNative.processUtils?.purgeMemory?.(); } catch { }
 }
 
 let fps = 0;

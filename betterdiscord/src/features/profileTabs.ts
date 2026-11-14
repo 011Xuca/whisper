@@ -63,6 +63,7 @@ function clean() {
     }
 }
 
+const TABLIST = '[role="tab"],[role="tablist"]';
 const schedule = () => { timer ??= setTimeout(scan, 80); };
 
 export function stopProfileTabs() {
@@ -76,7 +77,8 @@ export function stopProfileTabs() {
 export function syncProfileTabs() {
     if (!on("hideProfileTabs") && !on("hideMutualTabs")) return stopProfileTabs();
     if (!observer) {
-        observer = new MutationObserver(schedule);
+        // only DOM additions that can contain tabs matter; everything else (call grid, chat) is ignored
+        observer = new MutationObserver(rs => { if (rs.some(r => [...r.addedNodes].some(n => n instanceof Element && (n.matches(TABLIST) || n.querySelector(TABLIST))))) schedule(); });
         observer.observe(document.body, { childList: true, subtree: true });
     }
     scan();

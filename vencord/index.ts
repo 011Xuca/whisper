@@ -65,6 +65,12 @@ function syncAll() {
     safe("syncUpdater", syncUpdater);
 }
 
+// Internal bookkeeping keys change in the middle of a call (game start, noise level, update notice): re-scanning the whole DOM for them is a CPU spike.
+const INTERNAL = ["voiceLiteSaved", "prevMotion", "notifiedVersion"];
+function onChange(_: unknown, path: string) {
+    if (!INTERNAL.includes(path.split(".").pop() ?? "")) syncAll();
+}
+
 export default definePlugin({
     name: "Whisper",
     description: t("Reduce el CPU/RAM de Discord: duerme la UI al minimizar, modo juego, sin animaciones/efectos, media al pasar el mouse, personalizacion de perfiles configurable y ahorro en llamadas, sin cortar nunca la voz", "Cuts Discord's CPU/RAM use: sleeps the UI when minimized, game mode, no animations/effects, media on hover, configurable profile personalization and call savings, never cutting voice"),
@@ -85,12 +91,12 @@ export default definePlugin({
         safe("onStateChange", () => onStateChange(syncState));
         safe("startSleep", startSleep);
         syncAll();
-        safe("addPrefixChangeListener", () => SettingsStore.addPrefixChangeListener("plugins.Whisper", syncAll));
+        safe("addPrefixChangeListener", () => SettingsStore.addPrefixChangeListener("plugins.Whisper", onChange));
         safe("addRestartListener", () => SettingsStore.addPrefixChangeListener("plugins.Whisper", onSettingChange));
     },
 
     stop() {
-        safe("removePrefixChangeListener", () => SettingsStore.removePrefixChangeListener("plugins.Whisper", syncAll));
+        safe("removePrefixChangeListener", () => SettingsStore.removePrefixChangeListener("plugins.Whisper", onChange));
         safe("removeRestartListener", () => SettingsStore.removePrefixChangeListener("plugins.Whisper", onSettingChange));
         safe("stopSleep", stopSleep);
         safe("resetState", resetState);

@@ -22,9 +22,9 @@ Personal Discord plugin that lowers the client's CPU and RAM use. It has two edi
 
 ## Qué hace / What it does
 
-**ES:** todo viene **desactivado** salvo el *Modo juego* y el *logo de Whisper*. Cada opción se activa por separado en el panel de ajustes del plugin, y hay perfiles (Ligero, Equilibrado, Máximo ahorro, Gaming) que activan un conjunto de opciones de una vez. Entre otras cosas: dormir la interfaz al minimizar o taparse por completo (perder el foco no la duerme), modo juego con límite de FPS, sin animaciones/desenfoques/sombras, GIFs, emojis e imágenes bajo demanda, ocultar decoraciones de perfil, Misiones, Tienda/Nitro y "Activo ahora", y filtros de eventos (escritura, presencia, canales silenciados, telemetría).
+**ES:** todo viene **desactivado** salvo el *Modo juego*, el *logo de Whisper* y (solo Vencord) el aviso de versiones nuevas. Cada opción se activa por separado en el panel de ajustes del plugin, y hay perfiles (Ligero, Equilibrado, Máximo ahorro, Gaming) que activan un conjunto de opciones de una vez. Entre otras cosas: dormir la interfaz al minimizar o taparse por completo (perder el foco no la duerme), modo juego con límite de FPS, sin animaciones/desenfoques/sombras, GIFs, emojis e imágenes bajo demanda, ocultar decoraciones de perfil, Misiones, Tienda/Nitro y "Activo ahora", y filtros de eventos (escritura, presencia, canales silenciados, telemetría).
 
-**EN:** everything is **off** except *Game mode* and the *Whisper logo*. Each option is switched on separately in the plugin's settings panel, and presets (Light, Balanced, Maximum savings, Gaming) switch on a group of options at once. Among other things: sleeping the UI when minimized or fully covered (losing focus does not sleep it), game mode with an FPS limit, no animations/blur/shadows, GIFs, emojis and images on demand, hiding profile decorations, Quests, Shop/Nitro and "Active Now", and event filters (typing, presence, muted channels, telemetry).
+**EN:** everything is **off** except *Game mode*, the *Whisper logo* and (Vencord only) the new-version notice. Each option is switched on separately in the plugin's settings panel, and presets (Light, Balanced, Maximum savings, Gaming) switch on a group of options at once. Among other things: sleeping the UI when minimized or fully covered (losing focus does not sleep it), game mode with an FPS limit, no animations/blur/shadows, GIFs, emojis and images on demand, hiding profile decorations, Quests, Shop/Nitro and "Active Now", and event filters (typing, presence, muted channels, telemetry).
 
 ## Instalación / Installation (Windows)
 
@@ -144,9 +144,31 @@ If BetterDiscord is missing, the script saves its installer to `%TEMP%` and open
 
 ## Diferencias entre ediciones / Differences between editions
 
-**ES:** la edición de BetterDiscord no incluye voz ligera, cerrar transmisiones/cámaras al dormir y reabrirlas, ni el aviso de actualizaciones. "Dormir al minimizar o taparse" usa la oclusión nativa de Chromium; funcionó sin opciones extra en las versiones probadas. Si en tu versión solo detecta minimizar, inicia Discord con `--enable-features=CalculateNativeWinOcclusion`.
+**ES:**
 
-**EN:** the BetterDiscord edition does not include light voice, closing streams/cameras while asleep and reopening them, or the update notice. "Sleep when minimized or covered" uses Chromium's native occlusion; it worked without extra flags in the tested versions. If on your build it only detects minimizing, start Discord with `--enable-features=CalculateNativeWinOcclusion`.
+| | Vencord | BetterDiscord |
+|---|---|---|
+| Instalación | Hay que compilar Vencord (`install.ps1`) | Un solo archivo `Whisper.plugin.js`, sin compilar |
+| Actualizar | `update.ps1` (baja la última versión, compila; reinicia Discord) | Reemplaza `Whisper.plugin.js` |
+| Aviso de versiones nuevas | Sí, activado por defecto | No (el ajuste del menú no hace nada) |
+| Voz ligera en juego | Sí | No |
+| Cerrar transmisiones/cámaras al dormir y reabrirlas | Sí | No |
+| Todo lo demás (efectos, media al pasar el mouse, perfiles, filtros, modo juego) | Sí | Sí |
+
+"Dormir al minimizar o taparse" usa la oclusión nativa de Chromium; funcionó sin opciones extra en las versiones probadas. Si en tu versión solo detecta minimizar, inicia Discord con `--enable-features=CalculateNativeWinOcclusion`. Las ediciones comparten la lógica, pero Vencord tiene más funciones de llamada, que son las que más trabajo hacen al dormir y despertar. Si solo buscas ahorrar CPU sin más, BetterDiscord es más simple.
+
+**EN:**
+
+| | Vencord | BetterDiscord |
+|---|---|---|
+| Install | Vencord must be built (`install.ps1`) | Single `Whisper.plugin.js` file, no build |
+| Update | `update.ps1` (downloads the latest version and builds; restart Discord) | Replace `Whisper.plugin.js` |
+| New-version notice | Yes, on by default | No (the menu switch does nothing) |
+| Light voice while gaming | Yes | No |
+| Close streams/cameras while asleep and reopen them | Yes | No |
+| Everything else (effects, media on hover, profiles, filters, game mode) | Yes | Yes |
+
+"Sleep when minimized or covered" uses Chromium's native occlusion; it worked without extra flags in the tested versions. If on your build it only detects minimizing, start Discord with `--enable-features=CalculateNativeWinOcclusion`. The editions share their logic, but Vencord has more call features, which do the most work when sleeping and waking. If you only want to save CPU, BetterDiscord is simpler.
 
 ## Desarrollo / Development
 
